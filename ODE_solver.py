@@ -3,11 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 class CharacteristicSolver:
-    def __init__(self, a_func, b_func, c_func):
-        """
-        מאתחל את הפותרן עם המקדמים של המשוואה הקוואזי-לינארית:
-        b(x,t,u) * u_t + a(x,t,u) * u_x = c(x,t,u)
-        """
+    def __init__(self, a_func, b_func, c_func):      
         self.a = a_func
         self.b = b_func
         self.c = c_func
@@ -19,7 +15,6 @@ class CharacteristicSolver:
         """
         t, x, u = state
         
-        # המערכת הקנונית של הקווים האופייניים:
         # dt/ds = b
         # dx/ds = a
         # du/ds = c
@@ -83,41 +78,33 @@ class CharacteristicSolver:
         plt.grid(True, alpha=0.3)
         plt.show()
 
-# --- דוגמה לשימוש: משוואת בורגרס ---
-# u_t + u * u_x = 0
-# כלומר: b=1, a=u, c=0
 
 def run_burgers_example():
-    # הגדרת המקדמים
     # ut+uux = 0
-    def a(x, t, u): return u   # המהירות תלויה ב-u (לא לינארי!)
-    def b(x, t, u): return 1.0 # מקדם הזמן
-    def c(x, t, u): return 0.0 # משוואה הומוגנית
-
+    # ----------
+    def a(x, t, u): return u  
+    def b(x, t, u): return 1.0 
+    def c(x, t, u): return 0.0  
     # ut+2ux = -u
     #def a(x, t, u): return 2.0
     #def b(x, t, u): return 1.0
     #def c(x, t, u): return -u
-
-
-
-    
-    # תנאי התחלה: גל סינוס שיוצר הלם
     def u_init(x): return -np.sin(np.pi * x)
-    
-    # יצירת הפותרן
-    solver = CharacteristicSolver(a, b, c)
-    
-    # הגדרת נקודות ההתחלה
+    solver = CharacteristicSolver(a, b, c)   
     x0_points = np.linspace(-1, 1, 20)
-    
-    # חישוב
     print("Calculating characteristics...")
-    curves = solver.solve(x0_points, u_init, t_max=0.6)
-    print (curves[10]['t']  )
-    print (curves[10]['x']  )
-    print (curves[10]['u']  )
-    # ציור
+    curves = solver.solve(x0_points, u_init, t_max=1)
+    k=0
+    for curve in curves:
+        if k==0:
+            a = np.hstack([curve['x'].reshape(-1, 1), curve['t'].reshape(-1, 1)])
+            k=1
+        else:
+            a = np.concatenate((a, np.hstack([curve['x'].reshape(-1, 1), curve['t'].reshape(-1, 1)])))
+    print (a)
+    np.savetxt('X_pde_Charecataristics.csv', a, delimiter=',')
+    #np.savetxt('t_pde_points.csv', sol.t, delimiter=',')
+
     solver.plot_characteristics(curves, title="Characteristics for Inviscid Burgers Equation")
 
 if __name__ == "__main__":
